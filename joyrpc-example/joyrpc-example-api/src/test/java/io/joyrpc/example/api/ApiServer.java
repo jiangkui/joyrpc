@@ -54,10 +54,9 @@ public class ApiServer {
             }
         });
 
+        providerConfig.setParameter("shutdownTimeout", 1500);
 
-
-
-        providerConfig.setParameter("shutdownTimeout", 15000);
+        System.out.println("服务端启动完成！");
         System.in.read();
     }
 }

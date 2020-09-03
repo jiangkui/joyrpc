@@ -18,6 +18,7 @@
         <module>joyrpc-example</module>
         <module>joyrpc-all</module>
         <module>joyrpc-plugin/joyrpc-transaction</module>
+        <module>ljk-demo</module>
     </modules>
     <name>joyrpc</name>
     <properties>

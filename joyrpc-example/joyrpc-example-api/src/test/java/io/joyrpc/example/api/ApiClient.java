@@ -42,7 +42,7 @@ public class ApiClient {
         consumerConfig.setAlias("joyrpc-demo");
         //consumerConfig.setRegistry(new RegistryConfig("broadcast"));
         consumerConfig.setRegistry(new RegistryConfig("fix", "grpc://127.0.0.1:22000"));
-        consumerConfig.setTimeout(1000000);
+        consumerConfig.setTimeout(100000);
         try {
             CompletableFuture<DemoService> future = consumerConfig.refer();
             DemoService service = future.get();
