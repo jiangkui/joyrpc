@@ -34,7 +34,6 @@ import java.util.function.Consumer;
  * 抽象的数据序列化
  */
 public abstract class AbstractSerializer implements Serializer {
-
     /**
      * 构造数据写对象
      *

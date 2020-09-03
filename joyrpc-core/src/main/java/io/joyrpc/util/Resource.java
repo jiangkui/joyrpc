@@ -22,11 +22,13 @@ package io.joyrpc.util;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.LinkedList;
-import java.util.List;
+import java.net.URL;
+import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+import static io.joyrpc.util.ClassUtils.getCurrentClassLoader;
 
 /**
  * 资源工具类，读取资源文件
@@ -43,43 +45,110 @@ public class Resource {
      * @return
      */
     public static List<String> lines(final String[] resources, final boolean includeAll) {
-        return lines(resources, includeAll, NONE_COMMENT);
+        Definition[] definitions = new Definition[resources == null ? 0 : resources.length];
+        if (resources != null) {
+            for (int i = 0; i < resources.length; i++)
+                definitions[i] = new Definition(resources[i]);
+        }
+        return lines(definitions, includeAll, false, NONE_COMMENT);
     }
 
     /**
      * 读取资源文件内容，忽略不存在的文件和异常
      *
-     * @param resources  资源文件
-     * @param includeAll 包含所有文件
-     * @param predicate  断言
+     * @param definitions 资源
+     * @param includeAll  包含所有文件
      * @return
      */
-    public static List<String> lines(final String[] resources, final boolean includeAll, final Predicate<String> predicate) {
+    public static List<String> lines(final Definition[] definitions, final boolean includeAll) {
+        return lines(definitions, includeAll, false, NONE_COMMENT);
+    }
 
-        List<String> result = new LinkedList<>();
+    /**
+     * 读取资源文件内容，忽略不存在的文件和异常，去除掉重复的行
+     *
+     * @param definitions      资源
+     * @param includeAll       包含所有文件
+     * @param removeDuplicated 去除重复的行
+     * @return
+     */
+    public static List<String> lines(final Definition[] definitions, final boolean includeAll, final boolean removeDuplicated) {
+        return lines(definitions, includeAll, removeDuplicated, NONE_COMMENT);
+    }
 
-        if (resources != null) {
-            ClassLoader loader = ClassUtils.getCurrentClassLoader();
-            for (String resource : resources) {
-                InputStream inputStream = loader.getResourceAsStream(resource);
-                if (inputStream != null) {
-                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-                        String line;
-                        while ((line = reader.readLine()) != null) {
-                            if (predicate == null || predicate.test(line)) {
-                                result.add(line);
-                            }
-                        }
-                        if (!includeAll) {
-                            break;
+    /**
+     * 读取资源文件内容，忽略不存在的文件和异常，去除掉重复的行
+     *
+     * @param definitions      资源
+     * @param includeAll       包含所有文件
+     * @param removeDuplicated 去除重复的行
+     * @param predicate        断言
+     * @return
+     */
+    public static List<String> lines(final Definition[] definitions, final boolean includeAll,
+                                     final boolean removeDuplicated, final Predicate<String> predicate) {
+        if (removeDuplicated) {
+            LinkedHashSet<String> result = lines(definitions, includeAll, predicate, new LinkedHashSet<>());
+            return result.stream().collect(Collectors.toList());
+        } else {
+            return lines(definitions, includeAll, predicate, new LinkedList<>());
+        }
+    }
+
+    /**
+     * 读取资源文件内容，忽略不存在的文件和异常，去除掉重复的行
+     *
+     * @param definitions 资源
+     * @param includeAll  包含所有文件
+     * @param predicate   断言
+     * @param result      集合
+     * @return 集合
+     */
+    protected static <T extends Collection<String>> T lines(final Definition[] definitions, final boolean includeAll,
+                                                            final Predicate<String> predicate, final T result) {
+        if (definitions != null) {
+            ClassLoader loader = getCurrentClassLoader();
+            for (Definition definition : definitions) {
+                if (definition.isAll()) {
+                    //读所有同路径的文件
+                    try {
+                        Enumeration<URL> urls = loader.getResources(definition.getName());
+                        while (urls.hasMoreElements()) {
+                            readLines(urls.nextElement(), predicate, result);
                         }
                     } catch (IOException e) {
                     }
+                } else {
+                    //同路径的文件，只读取一个
+                    readLines(loader.getResource(definition.getName()), predicate, result);
                 }
-
+                if (!includeAll) {
+                    break;
+                }
             }
         }
         return result;
+    }
+
+    /**
+     * 读文件
+     *
+     * @param url       资源文件
+     * @param predicate 断言
+     * @param lines     结果
+     */
+    protected static void readLines(final URL url, final Predicate<String> predicate, final Collection<String> lines) {
+        if (url != null) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (predicate == null || predicate.test(line)) {
+                        lines.add(line);
+                    }
+                }
+            } catch (IOException e) {
+            }
+        }
     }
 
     /**
@@ -89,7 +158,7 @@ public class Resource {
      * @return
      */
     public static List<String> lines(final String resource) {
-        return lines(new String[]{resource}, false, NONE_COMMENT);
+        return lines(new Definition[]{new Definition(resource)}, false, false, NONE_COMMENT);
     }
 
     /**
@@ -100,6 +169,39 @@ public class Resource {
      * @return
      */
     public static List<String> lines(final String resource, final Predicate<String> predicate) {
-        return lines(new String[]{resource}, false);
+        return lines(new Definition[]{new Definition(resource)}, false, false, predicate);
+    }
+
+    /**
+     * 资源定义
+     */
+    public static class Definition {
+
+        /**
+         * 资源名称路径
+         */
+        protected String name;
+
+        /**
+         * 是否包含所有
+         */
+        protected boolean all;
+
+        public Definition(String name) {
+            this.name = name;
+        }
+
+        public Definition(String name, boolean all) {
+            this.name = name;
+            this.all = all;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public boolean isAll() {
+            return all;
+        }
     }
 }

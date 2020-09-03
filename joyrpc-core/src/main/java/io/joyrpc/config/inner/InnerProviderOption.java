@@ -193,7 +193,7 @@ public class InnerProviderOption extends AbstractInterfaceOption {
                 try {
                     return compiler.compile(n, builder);
                 } catch (Throwable e) {
-                    logger.error(e.getMessage() + " java:\n" + builder.toString());
+                    logger.warn(e.getMessage() + " java:\n" + builder.toString(), e);
                     return null;
                 }
             });
@@ -202,7 +202,7 @@ public class InnerProviderOption extends AbstractInterfaceOption {
             }
             Constructor[] constructors = clazz.getConstructors();
             return (MethodCaller) constructors[0].newInstance(ref);
-        } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
+        } catch (IllegalAccessException | IllegalArgumentException | InstantiationException | InvocationTargetException e) {
             return null;
         }
     }

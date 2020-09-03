@@ -23,6 +23,8 @@ package io.joyrpc.codec.serialization.java;
 import io.joyrpc.codec.serialization.*;
 import io.joyrpc.extension.Extension;
 import io.joyrpc.permission.BlackList;
+import io.joyrpc.permission.SerializerBlackWhiteList;
+import io.joyrpc.util.Resource.Definition;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -53,7 +55,7 @@ public class JavaSerialization implements Serialization, BlackList.BlackListAwar
 
     @Override
     public void updateBlack(final Collection<String> blackList) {
-        JavaSerializer.BLACK_LIST.updateBlack(blackList);
+        JavaSerializer.BLACK_WHITE_LIST.updateBlack(blackList);
     }
 
     /**
@@ -61,8 +63,10 @@ public class JavaSerialization implements Serialization, BlackList.BlackListAwar
      */
     protected static class JavaSerializer extends AbstractSerializer {
 
-        protected static final BlackList<String> BLACK_LIST = new SerializerBlackList("permission/java.blacklist",
-                "META-INF/permission/java.blacklist").load();
+        protected static final SerializerBlackWhiteList BLACK_WHITE_LIST = new SerializerBlackWhiteList(
+                new Definition[]{
+                        new Definition("permission/java.blacklist"),
+                        new Definition("META-INF/permission/java.blacklist", true)});
 
         protected static final JavaSerializer INSTANCE = new JavaSerializer();
 
@@ -76,7 +80,7 @@ public class JavaSerialization implements Serialization, BlackList.BlackListAwar
 
         @Override
         protected ObjectReader createReader(final InputStream is, final Class clazz) throws IOException {
-            return new ObjectInputReader(new JavaInputStream(is, BLACK_LIST));
+            return new ObjectInputReader(new JavaInputStream(is, BLACK_WHITE_LIST));
         }
 
     }

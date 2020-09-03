@@ -131,7 +131,7 @@ public class NettyClientTransport extends AbstractClientTransport {
         bootstrap.group(ioGroup).channel(Constants.isUseEpoll(url) ? EpollSocketChannel.class : NioSocketChannel.class).
                 option(ChannelOption.CONNECT_TIMEOUT_MILLIS, url.getPositiveInt(Constants.CONNECT_TIMEOUT_OPTION)).
                 //option(ChannelOption.SO_TIMEOUT, url.getPositiveInt(Constants.SO_TIMEOUT_OPTION)).
-                option(ChannelOption.TCP_NODELAY, url.getBoolean(TCP_NODELAY)).
+                        option(ChannelOption.TCP_NODELAY, url.getBoolean(TCP_NODELAY)).
                 option(ChannelOption.SO_KEEPALIVE, url.getBoolean(Constants.SO_KEEPALIVE_OPTION)).
                 option(ChannelOption.ALLOCATOR, BufAllocator.create(url)).
                 option(ChannelOption.WRITE_BUFFER_WATER_MARK,

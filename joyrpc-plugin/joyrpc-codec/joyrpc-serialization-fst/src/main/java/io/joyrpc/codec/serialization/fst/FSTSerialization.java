@@ -23,6 +23,8 @@ package io.joyrpc.codec.serialization.fst;
 import io.joyrpc.codec.serialization.*;
 import io.joyrpc.extension.Extension;
 import io.joyrpc.extension.condition.ConditionalOnClass;
+import io.joyrpc.permission.SerializerBlackWhiteList;
+import io.joyrpc.util.Resource.Definition;
 import org.nustaq.serialization.AutowiredObjectSerializer;
 import org.nustaq.serialization.FSTConfiguration;
 
@@ -57,6 +59,11 @@ public class FSTSerialization implements Serialization {
      */
     protected static final class FSTSerializer extends AbstractSerializer {
 
+        protected static final SerializerBlackWhiteList BLACK_WHITE_LIST = new SerializerBlackWhiteList(
+                new Definition[]{
+                        new Definition("permission/fst.blacklist"),
+                        new Definition("META-INF/permission/fst.blacklist", true)});
+
         /**
          * 单例，延迟加载
          */
@@ -67,6 +74,8 @@ public class FSTSerialization implements Serialization {
         protected static FSTConfiguration fst = FSTConfiguration.createDefaultConfiguration();
 
         static {
+            //增加黑白名单配置
+            fst.setVerifier(cl -> BLACK_WHITE_LIST.isValid(cl));
             //注册插件，便于第三方协议注册序列化实现
             register(AutowiredObjectSerializer.class, o -> fst.registerSerializer(o.getType(), o, false));
         }
