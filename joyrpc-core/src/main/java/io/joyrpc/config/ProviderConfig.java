@@ -175,10 +175,12 @@ public class ProviderConfig<T> extends AbstractInterfaceConfig implements Serial
      */
     public CompletableFuture<Void> exportAndOpen() {
         CompletableFuture<Void> future = new CompletableFuture<>();
+        // fixme 创建 Export 对象
         export().whenComplete((v, t) -> {
             if (t != null) {
                 future.completeExceptionally(t);
             } else {
+                // fixme 打开服务
                 Futures.chain(open(), future);
             }
         });
@@ -234,7 +236,7 @@ public class ProviderConfig<T> extends AbstractInterfaceConfig implements Serial
                     future.completeExceptionally(t);
                     unexport();
                 } else {
-                    //开始创建服务
+                    // fixme 开始创建服务
                     controller.export().whenComplete((o, s) -> {
                         if (future != exportFuture || s == null && !STATE_UPDATER.compareAndSet(this, Status.EXPORTING, Status.EXPORTED)) {
                             future.completeExceptionally(new InitializationException("state is illegal."));
@@ -602,9 +604,11 @@ public class ProviderConfig<T> extends AbstractInterfaceConfig implements Serial
             try {
                 config.validate();
                 ServerConfig serverConfig = config.getServerConfig();
-                //注册中心地址
+
+                // fixme 根据ProviderConfig配置信息生成注册中心地址和服务URL地址
+                // 注册中心地址
                 List<URL> urls = parse(config.getRegistry());
-                //服务地址
+                // 服务地址
                 String remote = urls.get(0).getString(ADDRESS_OPTION);
                 ServerAddress address = getAddress(serverConfig, remote);
                 //生成注册的URL
@@ -616,7 +620,8 @@ public class ProviderConfig<T> extends AbstractInterfaceConfig implements Serial
                 url = new URL(GlobalContext.getString(PROTOCOL_KEY), address.host, address.port, config.interfaceClazz, map);
                 //加上动态配置的服务URL
                 serviceUrl = configure(null);
-                //订阅
+                // 订阅
+                // fixme 注册中心相关处理
                 chain(subscribe(urls), future, v -> chain(waitingConfig, future, u -> {
                     //检查动态配置是否修改了别名，需要重新订阅
                     resubscribe(buildSubscribedUrl(configureRef, u), false);
@@ -624,6 +629,7 @@ public class ProviderConfig<T> extends AbstractInterfaceConfig implements Serial
                     serviceUrl = u;
                     try {
                         List<URL> registerUrls = registries.stream().map(registry -> buildRegisteredUrl(registry, serviceUrl)).collect(Collectors.toList());
+                        // fixme 创建 Exporter 对象
                         exporter = ServiceManager.export(serviceUrl, config, registries, registerUrls, configureRef, subscribeUrl, configHandler);
                         future.complete(null);
                     } catch (Exception ex) {
@@ -683,11 +689,13 @@ public class ProviderConfig<T> extends AbstractInterfaceConfig implements Serial
             //多注册中心
             for (URL url : urls) {
                 //注册中心工厂插件
+                // fixme Registry：注册中心对象，与注册中心交互
                 Registry registry = getRegistry(url);
                 if (registry == null) {
                     futures.add(Futures.completeExceptionally(
                             new InitializationException(String.format("Create registry error. %s", url.getProtocol()))));
                 } else if (unique.add(registry)) {
+                    // fixme 这里调用 Registry.open() 与注册中心建立链接
                     futures.add(subscribe(registry, subscribed));
                     registries.add(registry);
                 }

@@ -30,6 +30,7 @@ import java.util.function.Supplier;
 
 /**
  * 注册中心接口
+ * fixme 注册中心对象，与注册中心进行交互
  */
 public interface Registry extends Registar, Configure {
 

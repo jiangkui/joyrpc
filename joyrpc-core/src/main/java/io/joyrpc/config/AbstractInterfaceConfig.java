@@ -913,6 +913,7 @@ public abstract class AbstractInterfaceConfig extends AbstractIdConfig {
                 }
                 future.complete(null);
             } else {
+                // fixme 开启注册中心对象，也就是与注册中心建立连接：registry.open()
                 CompletableFuture<Void> open = registry.open();
                 open.whenComplete((v, t) -> {
                     if (t != null) {
@@ -927,6 +928,7 @@ public abstract class AbstractInterfaceConfig extends AbstractIdConfig {
                         if (config.subscribe) {
                             subscribeUrl = buildSubscribedUrl(configureRef, serviceUrl);
                             logger.info("Start subscribing global config " + config.name());
+                            // fixme 订阅接口的配置信息与全局配置信息
                             configureRef.subscribe(subscribeUrl, configHandler);
                         }
                         future.complete(null);

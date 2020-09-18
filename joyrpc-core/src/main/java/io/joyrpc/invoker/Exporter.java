@@ -61,6 +61,8 @@ import static io.joyrpc.Plugin.*;
 import static io.joyrpc.constants.Constants.FILTER_CHAIN_FACTORY_OPTION;
 
 /**
+ * fixme Exporter 是 Invoker 接口的子类，用于处理服务端接收的请求；Invoker 另一个子类 Refer，用来向服务端发送请求，这两个类是入口层最核心的两个类。
+ *
  * @date: 15/1/2019
  */
 public class Exporter extends AbstractService {
