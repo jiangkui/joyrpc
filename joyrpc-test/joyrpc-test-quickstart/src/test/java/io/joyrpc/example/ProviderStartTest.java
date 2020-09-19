@@ -29,9 +29,6 @@ import org.junit.Test;
 
 public class ProviderStartTest {
 
-    /**
-     * fixme jiangkui 从这里开始
-     */
     @Test
     public void exportTest() throws InterruptedException {
         ServerConfig serverConfig = new ServerConfig();

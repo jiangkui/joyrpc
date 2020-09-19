@@ -286,6 +286,7 @@ public abstract class AbstractConsumerConfig<T> extends AbstractInterfaceConfig 
     public CompletableFuture<T> refer() {
         CompletableFuture<T> result = new CompletableFuture<>();
         CompletableFuture<Void> future = new CompletableFuture<>();
+        // fixme
         final T obj = refer(future);
         future.whenComplete((v, t) -> {
             if (t != null) {
@@ -314,6 +315,7 @@ public abstract class AbstractConsumerConfig<T> extends AbstractInterfaceConfig 
             final AbstractConsumerController<T, ? extends AbstractConsumerConfig> cc = create();
             openFuture = f;
             controller = cc;
+            // fixme
             cc.open().whenComplete((v, e) -> {
                 if (openFuture != f || e == null && !STATE_UPDATER.compareAndSet(this, Status.OPENING, Status.OPENED)) {
                     logger.error(String.format("Error occurs while referring %s with bean id %s,caused by state is illegal. ", name(), id));
@@ -750,6 +752,7 @@ public abstract class AbstractConsumerConfig<T> extends AbstractInterfaceConfig 
         public CompletableFuture<Void> open() {
             CompletableFuture<Void> future = new CompletableFuture<>();
             try {
+                // fixme 根据 ConsumerConfig 的配置信息生成 registryUrl（注册中心 URL 对象）与 serviceUrl（服务 URL 对象）
                 registry = (config.url != null && !config.url.isEmpty()) ?
                         new RegistryConfig(Constants.FIX_REGISTRY, config.url) :
                         (config.registry != null ? config.registry : RegistryConfig.DEFAULT_REGISTRY_SUPPLIER.get());
@@ -767,6 +770,7 @@ public abstract class AbstractConsumerConfig<T> extends AbstractInterfaceConfig 
                 url = new URL(GlobalContext.getString(PROTOCOL_KEY), host, 0, config.getInterfaceTarget(), config.addAttribute2Map());
                 //加上动态配置的服务URL
                 serviceUrl = configure(null);
+                // fixme
                 doOpen().whenComplete((v, e) -> {
                     if (e == null) {
                         future.complete(null);

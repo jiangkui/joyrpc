@@ -215,6 +215,7 @@ public class Exporter extends AbstractService {
                 if (warmup != null) {
                     logger.info("Success warmuping provider " + name);
                 }
+                // fixme 调用 Server.open()，开启端口，端口开启之后，服务端就可以提供远程服务了；
                 server.open(r -> {
                     if (!r.isSuccess()) {
                         result.completeExceptionally(new InitializationException(String.format("Error occurs while open server : %s error", name), r.getThrowable()));
@@ -225,6 +226,7 @@ public class Exporter extends AbstractService {
                                 result.completeExceptionally(new InitializationException(String.format("Error occurs while setup server : %s error", name), r.getThrowable()));
                             } else {
                                 //注册服务
+                                // fixme 将 server 注册到注册中心内。
                                 Futures.chain(doRegister(registries), result);
                             }
                         });
@@ -238,6 +240,7 @@ public class Exporter extends AbstractService {
     /**
      * 预热
      *
+     * fixme 调用接口预热插件，进行接口预热
      * @return
      */
     protected CompletableFuture<Void> warmup() {
@@ -365,6 +368,7 @@ public class Exporter extends AbstractService {
             //多注册中心
             CompletableFuture<?>[] futures = new CompletableFuture[registries.size()];
             for (int i = 0; i < registries.size(); i++) {
+                // fixme 将这个调用端节点注册到注册中心中。
                 futures[i] = registries.get(i).register(url);
             }
             //所有注册成功

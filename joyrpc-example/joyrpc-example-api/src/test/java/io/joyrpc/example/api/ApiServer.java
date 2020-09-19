@@ -47,6 +47,7 @@ public class ApiServer {
         //providerConfig.setRegistry(new RegistryConfig("broadcast"));
         providerConfig.setRegistry(new RegistryConfig("memory"));
 
+        // fixme jiangkui 服务端，从这里开始
         providerConfig.exportAndOpen().whenComplete((v, t) -> {
             if (t != null) {
                 logger.error(t.getMessage(), t);

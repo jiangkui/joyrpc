@@ -23,6 +23,8 @@ package io.joyrpc.transport;
 import io.joyrpc.transport.transport.ServerTransport;
 
 /**
+ * fixme 调用传输层中的 EndpointFactroy 插件，创建一个 Server 对象，一个 Server 对象就代表一个端口了
+ *
  * @date: 2019/1/7
  */
 public interface Server extends ServerTransport, Endpoint {

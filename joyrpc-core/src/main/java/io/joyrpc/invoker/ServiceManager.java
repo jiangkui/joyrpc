@@ -578,6 +578,7 @@ public class ServiceManager {
      */
     protected Server getServer(final URL url) {
         return servers.computeIfAbsent(url.getPort(), port -> {
+            // fixme 调用传输层中的 EndpointFactroy 插件，创建一个 Server 对象，一个 Server 对象就代表一个端口了
             Server server = ENDPOINT_FACTORY.getOrDefault(url.getString(ENDPOINT_FACTORY_OPTION)).createServer(url);
             server.setAdapter(new DefaultProtocolAdapter());
             server.addEventHandler(event -> {

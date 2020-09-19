@@ -44,6 +44,7 @@ public class ApiClient {
         consumerConfig.setRegistry(new RegistryConfig("fix", "grpc://127.0.0.1:22000"));
         consumerConfig.setTimeout(100000);
         try {
+            // fixme jiangkui 调用端入口：consumerConfig.refer()
             CompletableFuture<DemoService> future = consumerConfig.refer();
             DemoService service = future.get();
 

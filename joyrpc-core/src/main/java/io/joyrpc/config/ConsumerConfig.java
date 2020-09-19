@@ -100,8 +100,10 @@ public class ConsumerConfig<T> extends AbstractConsumerConfig<T> implements Seri
         protected CompletableFuture<Void> doOpen() {
             CompletableFuture<Void> future = new CompletableFuture<>();
             //创建注册中心
+            // fixme 根据 registryUrl，调用 Registry 插件，创建 Registry 对象，Registry 对象为注册中心对象，与注册中心进行交互；
             registryRef = REGISTRY.get(registryUrl.getProtocol()).getRegistry(registryUrl);
             //构建代理
+            // fixme 创建动态代理对象
             config.proxy();
             //订阅，等到初始化配置
             chain(subscribe(), future, (v) -> chain(waitingConfig, future, (url) -> {

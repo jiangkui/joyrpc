@@ -307,6 +307,7 @@ public class ProviderConfig<T> extends AbstractInterfaceConfig implements Serial
             future.completeExceptionally(new InitializationException("state is illegal."));
         } else {
             logger.info(String.format("Start opening provider %s.", name()));
+            // fixme 这里
             controller.open().whenComplete((v, t) -> {
                 if (openFuture != future || t == null && !STATE_UPDATER.compareAndSet(this, Status.OPENING, Status.OPENED)) {
                     logger.info(String.format("Failed exporting provider %s. caused by state is illegal", name()));
@@ -649,6 +650,7 @@ public class ProviderConfig<T> extends AbstractInterfaceConfig implements Serial
          */
         public CompletableFuture<Void> open() {
             Exporter r = exporter;
+            // fixme 调用 Exporter.open() 开启服务端
             return r == null ? Futures.completeExceptionally(new InitializationException("Status is illegal.")) : r.open();
         }
 
