@@ -105,6 +105,7 @@ public class ConsumerConfig<T> extends AbstractConsumerConfig<T> implements Seri
             //构建代理
             // fixme 创建动态代理对象
             config.proxy();
+            // fixme subscribe() 这里同服务端一样，打开注册中心 registry.open()，并订阅全局配置
             //订阅，等到初始化配置
             chain(subscribe(), future, (v) -> chain(waitingConfig, future, (url) -> {
                 //检查动态配置是否修改了别名，需要重新订阅
@@ -112,7 +113,10 @@ public class ConsumerConfig<T> extends AbstractConsumerConfig<T> implements Seri
                 registerUrl = config.register ? buildRegisteredUrl(registryRef, url) : null;
                 resubscribe(buildSubscribedUrl(configureRef, url), false);
                 try {
+                    // fixme 创建一个Refer对象，用于向服务端发送请求，与服务端的 Exporter 对应。
+                    // fixme Reger 主要包括创建路由策略、消息分发策略、创建负载均衡、调用链、添加 eventbus 事件监听等等；
                     refer = ServiceManager.refer(url, config, registryRef, registerUrl, configureRef, subscribeUrl, configHandler);
+                    // fixme 调用 refer.open() 开启调用端
                     //打开
                     chain(refer.open(), future, s -> {
                         //构建调用器

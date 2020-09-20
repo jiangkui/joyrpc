@@ -86,6 +86,7 @@ import static io.joyrpc.util.Timer.timer;
 /**
  * 引用
  *
+ * fixme 有两个子类：Exporter 是 Invoker 接口的子类，用于处理服务端接收的请求；Invoker 另一个子类 Refer，用来向服务端发送请求，这两个类是入口层最核心的两个类。
  * @date: 2019/1/10
  */
 public class Refer extends AbstractService {
@@ -244,6 +245,8 @@ public class Refer extends AbstractService {
         }
 
         this.cluster.addHandler(config);
+        // fixme 处理调用链路，执行 Filter.invoke 方法。调用 distribute 方法
+        // fixme Refer 对象的 distribute 方法作为最后一个 Filter，被调用链最后一个执行。
         //处理链
         this.chain = FILTER_CHAIN_FACTORY.getOrDefault(url.getString(FILTER_CHAIN_FACTORY_OPTION))
                 .build(this, this::distribute);
@@ -265,12 +268,15 @@ public class Refer extends AbstractService {
     /**
      * 调用远程
      *
+     * fixme 选好 node 后，发起远程调用。
+     *
      * @param node    当前节点
      * @param last    前一个节点
      * @param request 请求
      * @return CompletableFuture
      */
     protected CompletableFuture<Result> invokeRemote(final Node node, final Node last, final RequestMessage<Invocation> request) {
+        // fixme 调用传输层的 Client 对象，向服务端节点发送消息。
         Client client = node == null ? null : node.getClient();
         if (client == null) {
             //选择完后，节点可能被其它线程断开连接了
@@ -295,6 +301,7 @@ public class Refer extends AbstractService {
             if (request.getOption().getCallback() != null) {
                 container.addCallback(request, client);
             }
+            // fixme 在调用端发送流程中，最终会通过传输层将消息发送给服务端，这里对传输层的操作没有详细的讲解，其实传输层内部的流程还是比较复杂的，也会有一系列的操作，比如创建 Future 对象、调用 FutureManager 管理 Future 对象、请求消息协议转换处理、编解码、超时处理等等的操作。
             //异步发起调用
             CompletableFuture<Message> msgFuture = client.async(request, header.getTimeout());
 
@@ -400,6 +407,7 @@ public class Refer extends AbstractService {
 
     @Override
     public void setup(final RequestMessage<Invocation> request) {
+        // fixme Refer 对象对请求消息对象进行处理，如设置接口信息、分组信息等等；
         //实际的方法名称，泛型调用进行了处理
         ConsumerMethodOption option = (ConsumerMethodOption) this.option.getOption(request.getMethodName());
         option.setAutoScore(true);
@@ -422,6 +430,7 @@ public class Refer extends AbstractService {
         invocation.setClassName(interfaceName);
         //方法透传参数，整合了接口级别的参数
         invocation.addAttachments(option.getImplicits());
+        // fixme Refer 对象调用消息透传插件，处理透传信息，其中就包括隐式参数信息；
         //透传处理
         transmits.forEach(o -> o.inject(request));
         //超时时间放在后面，Invocation已经注入了请求上下文参数，隐藏参数等等
@@ -455,6 +464,7 @@ public class Refer extends AbstractService {
         //集群节点
         List<Node> nodes = cluster.getNodes();
         if (!nodes.isEmpty() && nodeSelector != null) {
+            // fixme 根据路由规则选出一组可访问的节点。NodeSelector 是集群层的路由规则节点选择器，其 select 方法用来选择出符合路由规则的服务节点；
             //路由选择
             nodes = nodeSelector.select(new Candidate(cluster, null, nodes, nodes.size()), request);
         }
@@ -465,6 +475,13 @@ public class Refer extends AbstractService {
                     CONSUMER_NO_ALIVE_PROVIDER);
         }
         Router route = ((ConsumerMethodOption) request.getOption()).getRouter();
+        // fixme 调用 router 的 route 方法：调用 loadBalance 对象 Select 方法，选择一份服务节点。
+        //  Route 对象为路由分发器，也是集群层中的对象，有很多策略：
+        //      BroadcastRouter：广播模式，遍历每个可用节点进行调用，如果有一个失败则返回失败，否则返回最后一个节点的调用结果
+        //      FailfastRouter：快速失败，常见
+        //      FailoverRouter：异常重试，【默认】    即：请求失败后可以重试请求，这里你可以回顾下[第 12 讲]，在这一讲的思考题中我就问过异常重试发送在 RPC 调用中的哪个环节，其实就在此环节；
+        //      ForkingRouter：并行调用
+        //      PinPointRouter：定点调用
         return route.route(request, new Candidate(cluster, null, nodes, nodes.size()));
     }
 
@@ -536,12 +553,16 @@ public class Refer extends AbstractService {
     @Override
     protected CompletableFuture<Void> doOpen() {
         CompletableFuture<Void> result = new CompletableFuture<>();
+        // fixme Refer 的register 是用来干啥的？调用端也需要向注册中心注册？
         //注册
         register().whenComplete((v, t) -> {
             if (t == null) {
                 logger.info("Success register consumer config " + name);
             }
         });
+        // fixme 【复杂】调用cluster.open() 开启集群。Cluster 是集群层核心对象，用于维护调用端与服务端节点的连接状态。
+        //  Cluster 对象负责维护该调用端节点集群信息，监听注册中心推送的服务节点更新事件，调用传输层中的 EndpointFactroy 插件，创建 Client 对象，
+        //  并且会通过 Client 与服务端节点建立连接，发送协商信息、安全验证信息、心跳信息，通过心跳机制维护与服务节点的连接状态。
         //打开集群不需要等到注册成功，因为可以从本地文件恢复。打开之前，已经提前进行了订阅获取全局配置
         cluster.open(o -> {
             if (o.isSuccess()) {

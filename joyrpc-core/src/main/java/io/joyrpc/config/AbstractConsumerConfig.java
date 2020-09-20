@@ -245,6 +245,7 @@ public abstract class AbstractConsumerConfig<T> extends AbstractInterfaceConfig 
      * @return
      */
     public T proxy() {
+        // fixme 这里创建了代理对象，调用的时候会执行对应的方法。
         if (stub == null) {
             final Class<T> proxyClass = getProxyClass();
             stub = getProxyFactory().getProxy(proxyClass, (proxy, method, args) -> {
@@ -837,6 +838,7 @@ public abstract class AbstractConsumerConfig<T> extends AbstractInterfaceConfig 
                         throw new RpcException("Consumer config is opening. " + config.name());
                 }
             }
+            // fixme 调用端从这里开始
             return handler.invoke(proxy, method, args);
         }
 
@@ -931,6 +933,7 @@ public abstract class AbstractConsumerConfig<T> extends AbstractInterfaceConfig 
             context.setAsync(isReturnFuture);
             //构造请求消息，参数类型放在Refer里面设置，使用缓存避免每次计算加快性能
             Invocation invocation = new Invocation(iface, null, method, param, generic);
+            // fixme 创建 requestMessage 消息对象
             RequestMessage<Invocation> request = RequestMessage.build(invocation);
             //分组Failover调用，需要在这里设置创建时间和超时时间，不能再Refer里面。否则会重置。
             request.setCreateTime(SystemClock.now());
@@ -952,8 +955,10 @@ public abstract class AbstractConsumerConfig<T> extends AbstractInterfaceConfig 
             } else {
                 request.setMethodName(method.getName());
             }
+            // fixme 这里对 requestMessage 做处理
             //初始化请求，绑定方法选项
             invoker.setup(request);
+            // fixme 发起调用
             //调用
             Object response = doInvoke(invoker, request, isAsync);
             try {
@@ -1090,6 +1095,7 @@ public abstract class AbstractConsumerConfig<T> extends AbstractInterfaceConfig 
             //异步调用，业务逻辑执行完毕，不清理IO线程的上下文
             CompletableFuture<Object> response = new CompletableFuture<>();
             try {
+                // fixme invoker 这里选择 Refer 的 invoke方法
                 CompletableFuture<Result> future = invoker.invoke(request);
                 future.whenComplete((res, err) -> {
                     //目前是让用户自己保留上下文

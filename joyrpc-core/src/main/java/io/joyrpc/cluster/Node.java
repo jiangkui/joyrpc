@@ -363,6 +363,7 @@ public class Node implements Shard {
             consumer.accept(new AsyncResult<>(this, new ProtocolException(String.format("protocol plugin %s is not found.",
                     url.getString(VERSION, url.getProtocol())))));
         } else {
+            // fixme 调用传输层中的 EndpointFactroy 插件，创建 Client 对象，并且会通过 Client 与服务端节点建立连接，发送协商信息、安全验证信息、心跳信息，通过心跳机制维护与服务节点的连接状态。
             //提供函数，减少一层包装
             final Client c = factory.createClient(url,
                     t -> publisher == null ?
@@ -429,6 +430,7 @@ public class Node implements Shard {
         }
         client.setCodec(protocol.getCodec());
         client.setChannelHandlerChain(protocol.buildChain());
+        // fixme 开启 client open
         client.open(event -> {
             if (event.isSuccess()) {
                 //发起协商，如果协商失败，则关闭连接

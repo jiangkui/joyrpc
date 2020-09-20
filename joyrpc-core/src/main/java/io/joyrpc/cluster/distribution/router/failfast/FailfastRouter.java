@@ -41,7 +41,9 @@ public class FailfastRouter extends AbstractRouter {
 
     @Override
     public CompletableFuture<Result> route(final RequestMessage<Invocation> request, final Candidate candidate) {
+        // fixme Route 对象调用 LoadBalance 对象的 select 方法，通过负载均衡选择一个节点；
         Node node = loadBalance.select(candidate, request);
+        // fixme 选中节点后，调用 refer 对象的 invokeRemote 方法
         return operation.apply(node, null, request);
     }
 

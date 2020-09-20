@@ -135,6 +135,7 @@ public class DefaultChannelTransport implements ChannelTransport {
             message.setMsgId(futureManager.generateId());
             message.setSessionId(transportId);
             message.setSession(session);
+            // fixme 比如创建 Future 对象、调用 FutureManager 管理 Future 对象、请求消息协议转换处理、编解码、超时处理等等的操作。
             //创建 future
             future = futureManager.create(message.getMsgId(), timeout, session, requests);
             try {

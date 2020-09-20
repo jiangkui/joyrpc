@@ -259,6 +259,8 @@ public class Cluster {
                 }
             });
             controller = s;
+            // fixme 订阅 provider 节点变化，收到服务端节点变化时，Cluster 会调用传输层 EndpointFactory 插件，创建 Client 对象，与这些服务节点建立链接，Cluster 会维护这些连接。
+            // fixme 在 Cluster 的 candidate 方法内，会建立 client 与 server 的 netty 链接
             //订阅集群
             registar.subscribe(url, s.getClusterHandler());
         } else if (consumer != null) {
@@ -652,6 +654,7 @@ public class Cluster {
                         //增量更新
                         add = onUpdateEvent(event.getDatum());
                         if (add > 0) {
+                            // fixme 新增服务端节点，开启 client 的链接
                             //新增了节点，重新选举
                             candidate();
                         }
@@ -814,6 +817,7 @@ public class Cluster {
                     result.getDiscards().size()
             ));*/
             final AtomicInteger semaphore = new AtomicInteger(result.getCandidates().size());
+            // fixme 开启 client 的链接
             //命中节点建立连接
             candidate(result.getCandidates(), (s, n) -> connect(n, r -> semaphore.decrementAndGet()), Node::getWeight);
             //热备节点建立连接

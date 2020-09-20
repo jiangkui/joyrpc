@@ -168,6 +168,7 @@ public abstract class AbstractClientTransport extends DefaultChannelTransport im
                     future.completeExceptionally(r.getThrowable());
                     close(o -> consumer.accept(r));
                 }
+                // fixme 开启 client 的 netty 链接
             }, getConnector());
         } else if (consumer != null) {
             switch (status) {
