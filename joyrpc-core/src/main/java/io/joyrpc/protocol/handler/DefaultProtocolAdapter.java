@@ -41,6 +41,7 @@ public class DefaultProtocolAdapter implements ProtocolAdapter {
         }
 
         int readerIndex = buffer.readerIndex();
+        // fixme 遍历 Protocol 插件的实现类，匹配协议。
         // 遍历协议集进行匹配
         for (ServerProtocol protocol : SERVER_PROTOCOL.extensions()) {
             if (protocol.match(buffer)) {

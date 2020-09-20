@@ -96,9 +96,12 @@ public class BizReqHandler extends AbstractReqHandler implements MessageHandler 
         request.setContext(RequestContext.getContext());
         Exporter exporter = null;
         try {
+            // fixme 根据连接 Session 信息，处理请求消息数据，并根据请求的接口名、分组名与方法名，获取 Exporter 对象；
             //从会话恢复
             exporter = restore(request, channel);
             final Exporter service = exporter;
+            // fixme 调用 Exporter 对象的 invoke 方法，Exporter 对象返回 CompletableFuture 对象；
+            // fixme onComplete 是调用完成，Exporter 对象将执行反射之后得到的请求结果异步通知给 BizReqHandle 对象；
             //执行调用，包括过滤器链
             exporter.invoke(request).whenComplete((r, throwable) -> onComplete(r, throwable, request, service, channel));
 
@@ -150,6 +153,8 @@ public class BizReqHandler extends AbstractReqHandler implements MessageHandler 
             //异步
             ((CompletableFuture<Object>) result.getValue()).whenComplete((obj, th) -> {
                 response.setPayLoad(new ResponsePayload(obj, th, type));
+                // fixme BizReqHandle 调用传输层的 Channel 对象，发送响应结果；
+                //  传输层对响应消息进行协议转换、序列化、编码，最后通过网络传输响应给调用端。
                 channel.send(response, sendFailed);
             });
         } else {

@@ -62,6 +62,7 @@ public class ProtocolAdapterDecoder extends ChannelInboundHandlerAdapter {
             ctx.pipeline().remove("adapter");
             //保存位置，进行协议判断
             int readerIndex = in.readerIndex();
+            // fixme 传输层收到请求，触发协议适配器 ProtocolAdapter，遍历 Protocol 插件的实现类，匹配协议。
             adapter.adapter(new ProtocolAdapterContext(channel, ctx.pipeline()), new NettyChannelBuffer(in));
             in.readerIndex(readerIndex);
             //如果第一个handler是sshHandler，此sshHandler本次不read

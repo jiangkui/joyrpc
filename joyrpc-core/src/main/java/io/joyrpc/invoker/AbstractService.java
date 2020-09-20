@@ -157,6 +157,7 @@ public abstract class AbstractService implements Invoker {
             if (request.getOption() == null) {
                 setup(request);
             }
+            // fixme FilterChain 的 invoke 方法；
             future = doInvoke(request);
         } catch (Throwable e) {
             //如果抛出了异常

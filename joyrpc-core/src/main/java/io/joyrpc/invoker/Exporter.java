@@ -187,6 +187,7 @@ public class Exporter extends AbstractService {
         this.port = url.getPort();
         this.compress = url.getString(Constants.COMPRESS_OPTION.getName());
         this.option = INTERFACE_OPTION_FACTORY.get().create(interfaceClass, interfaceName, url, ref);
+        // fixme Exporter 对象的 invokeMethod 方法作为最后一个 Filter，最后被调用；
         this.chain = FILTER_CHAIN_FACTORY.getOrDefault(url.getString(FILTER_CHAIN_FACTORY_OPTION))
                 .build(this, this::invokeMethod);
         this.identification = IDENTIFICATION.get(url.getString(Constants.IDENTIFICATION_OPTION));
@@ -343,6 +344,7 @@ public class Exporter extends AbstractService {
             try {
                 Invocation invocation = request.getPayLoad();
                 MethodCaller caller = ((ProviderMethodOption) request.getOption()).getCaller();
+                // fixme Exporter 对象的 invokeMethod 方法处理请求上下文，执行反射；
                 // 反射 真正调用业务代码
                 Object value = caller != null ? caller.invoke(invocation.getArgs()) : invocation.invoke(ref);
                 result.complete(new Result(request.getContext(), value));
