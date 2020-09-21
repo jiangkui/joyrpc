@@ -49,6 +49,9 @@ public class ProtocolAdapterDecoder extends ChannelInboundHandlerAdapter {
         this.channel = channel;
     }
 
+    /**
+     * fixme 每个信息入站都会调用
+     */
     @Override
     public void channelRead(final ChannelHandlerContext ctx, final Object obj) throws Exception {
         if (obj instanceof ByteBuf) {
@@ -73,6 +76,8 @@ public class ProtocolAdapterDecoder extends ChannelInboundHandlerAdapter {
                 ctx.pipeline().fireChannelRead(obj);
             }
         } else {
+            // fixme SimpleDecodeHandler.channelRead
+            //  SimpleBizHandler.channelRead
             super.channelRead(ctx, obj);
         }
 

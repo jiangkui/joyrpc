@@ -87,6 +87,7 @@ public class RequestChannelHandler<T extends MessageHandler> implements ChannelH
                 T handler = selector.select(msg.getMsgType());
                 if (handler != null) {
                     try {
+                        // fixme BizReqHandler
                         handler.handle(context, msg);
                         return null;
                     } catch (LafException e) {

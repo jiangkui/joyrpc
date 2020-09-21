@@ -41,10 +41,11 @@ public class DefaultProtocolAdapter implements ProtocolAdapter {
         }
 
         int readerIndex = buffer.readerIndex();
-        // fixme 遍历 Protocol 插件的实现类，匹配协议。
+        // fixme 遍历 Protocol 插件的实现类，匹配协议。有：Dubbo、Joy、Telnet、Grpc、http 等协议
         // 遍历协议集进行匹配
         for (ServerProtocol protocol : SERVER_PROTOCOL.extensions()) {
             if (protocol.match(buffer)) {
+                // fixme 根据协议，绑定编解码器，绑定处理链
                 context.bind(protocol.getCodec(), protocol.buildChain());
                 context.getChannel().setAttribute(Channel.PROTOCOL, protocol);
                 buffer.readerIndex(readerIndex);

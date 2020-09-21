@@ -94,7 +94,7 @@ public class NettyClientTransport extends AbstractClientTransport {
                 ioGroups[0] = EventLoopGroupFactory.getClientGroup(url);
                 //获取SSL上下文
                 SslContext sslContext = SslContextManager.getClientSslContext(url);
-                //TODO 考虑根据不同的参数，创建不同的连接
+                //TODO 考虑根据不同的参数，创建不同的连接，内部会添加各种处理。
                 Bootstrap bootstrap = configure(new Bootstrap(), ioGroups[0], channels, sslContext);
                 // Bind and start to accept incoming connections.
                 bootstrap.connect(url.getHost(), url.getPort()).addListener((ChannelFutureListener) f -> {
@@ -139,6 +139,7 @@ public class NettyClientTransport extends AbstractClientTransport {
                                 url.getPositiveInt(Constants.WRITE_BUFFER_LOW_WATERMARK_OPTION),
                                 url.getPositiveInt(Constants.WRITE_BUFFER_HIGH_WATERMARK_OPTION))).
                 option(ChannelOption.RCVBUF_ALLOCATOR, AdaptiveRecvByteBufAllocator.DEFAULT).
+                // fixme 这里是核心逻辑
                 handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(final SocketChannel ch) {
@@ -148,11 +149,14 @@ public class NettyClientTransport extends AbstractClientTransport {
                         channels[0].
                                 setAttribute(Channel.PAYLOAD, url.getPositiveInt(Constants.PAYLOAD)).
                                 setAttribute(Channel.BIZ_THREAD_POOL, bizThreadPool, (k, v) -> v != null);
+                        // fixme connect 处理
                         //添加连接事件监听
                         ch.pipeline().addLast("connection", new ConnectionChannelHandler(channels[0], publisher));
+                        // fixme 编解码处理
                         //添加编解码和处理链
                         HandlerBinder binder = Plugin.HANDLER_BINDER.get(codec.binder());
                         binder.bind(ch.pipeline(), codec, handlerChain, channels[0]);
+                        // fixme 心跳处理
                         //若配置idle心跳策略，配置心跳handler
                         if (heartbeatStrategy != null && heartbeatStrategy.getHeartbeatMode() == HeartbeatMode.IDLE) {
                             ch.pipeline().
@@ -160,8 +164,10 @@ public class NettyClientTransport extends AbstractClientTransport {
                                     addLast("idleHeartbeat", new IdleHeartbeatHandler());
                         }
                         if (sslContext != null) {
+                            // fixme ssl 处理
                             ch.pipeline().addFirst("ssl", sslContext.newHandler(ch.alloc()));
                         }
+                        // fixme ss5 处理
                         //若开启了ss5代理，添加ss5
                         if (url.getBoolean(SS5_ENABLE)) {
                             String host = url.getString(SS5_HOST);

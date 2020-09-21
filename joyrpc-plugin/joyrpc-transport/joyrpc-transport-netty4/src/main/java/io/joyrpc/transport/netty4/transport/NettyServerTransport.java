@@ -128,8 +128,11 @@ public class NettyServerTransport extends AbstractServerTransport {
      * @param sslContext
      */
     protected ServerBootstrap configure(final ServerBootstrap bootstrap, final SslContext sslContext) {
+        // fixme channel：信道类型
         //io.netty.bootstrap.Bootstrap - Unknown channel option 'SO_BACKLOG' for channel
         bootstrap.channel(Constants.isUseEpoll(url) ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
+                // fixme childHandler：当一个新的连接被接受，一个新的子 Channel 将被创建， ChannelInitializer 会添加我们 Handler 的实例到 Channel 的 ChannelPipeline。
+                //  正如我们如前所述，如果有入站信息，这个处理器将被通知，内部会增加各种 handler
                 .childHandler(new MyChannelInitializer(url, sslContext))
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, url.getPositiveInt(Constants.CONNECT_TIMEOUT_OPTION))
                 .option(ChannelOption.SO_REUSEADDR, url.getBoolean(Constants.SO_REUSE_PORT_OPTION))
@@ -170,6 +173,7 @@ public class NettyServerTransport extends AbstractServerTransport {
             this.sslContext = sslContext;
         }
 
+        // fixme 当有入站信息，这个方法将会被调用。
         @Override
         protected void initChannel(final SocketChannel ch) {
             //及时发送 与 缓存发送
@@ -178,8 +182,10 @@ public class NettyServerTransport extends AbstractServerTransport {
             channel.setAttribute(Channel.PAYLOAD, url.getPositiveInt(Constants.PAYLOAD))
                     .setAttribute(Channel.BIZ_THREAD_POOL, bizThreadPool, (k, v) -> v != null);
             if (sslContext != null) {
+                // fixme 添加 ssl handler
                 ch.pipeline().addFirst("ssl", sslContext.newHandler(ch.alloc()));
             }
+            // fixme 添加 connect handler
             ch.pipeline().addLast("connection", new ConnectionChannelHandler(channel, publisher) {
                 @Override
                 public void channelInactive(final ChannelHandlerContext ctx) throws Exception {
@@ -190,6 +196,7 @@ public class NettyServerTransport extends AbstractServerTransport {
             });
 
             if (adapter != null) {
+                // fixme 添加 protocol 适配 handler
                 ch.pipeline().addLast("adapter", new ProtocolAdapterDecoder(adapter, channel));
             } else {
                 AdapterContext context = new ProtocolAdapterContext(channel, ch.pipeline());

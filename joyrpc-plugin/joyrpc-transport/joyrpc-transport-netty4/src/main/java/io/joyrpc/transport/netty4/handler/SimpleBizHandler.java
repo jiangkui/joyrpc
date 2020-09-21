@@ -55,6 +55,7 @@ public class SimpleBizHandler extends ChannelDuplexHandler {
     @Override
     public void channelRead(final ChannelHandlerContext ctx, final Object msg) {
         try {
+            // fixme RequestChannelHandler.received
             handler.received(new NettyChannelContext(channel), msg);
         } catch (Exception e) {
             exceptionCaught(ctx, e);
